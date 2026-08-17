@@ -1,0 +1,71 @@
+NETLIFY ORTAM DEĞİŞKENLERİ — kopyala/yapıştır kılavuzu
+=======================================================
+
+Netlify: Site configuration -> Environment variables -> Add a variable
+        -> "Add a single variable"
+
+Her değişken için İKİ AYRI kutu var. Karıştırmayın:
+
+
+DEĞİŞKEN 1
+----------
+Key kutusuna SADECE şunu yapıştırın (tırnak yok, eşittir yok):
+
+NEXT_PUBLIC_SUPABASE_URL
+
+Value kutusuna Supabase'deki Project URL:
+
+https://xxxxxxxxxxxx.supabase.co
+
+
+DEĞİŞKEN 2
+----------
+Key kutusuna SADECE şunu yapıştırın:
+
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+Value kutusuna Supabase'deki Publishable key VEYA anon key:
+
+sb_publishable_...        (yeni format)
+    veya
+eyJhbGciOiJIUzI1NiI...    (eski format, çok uzun)
+
+
+SIK YAPILAN HATALAR
+-------------------
+YANLIŞ  Key: NEXT_PUBLIC_SUPABASE_URL=https://abc.supabase.co
+        (tamamını Key kutusuna yapıştırmışsınız - "=" işareti geçersiz)
+DOĞRU   Key kutusu: NEXT_PUBLIC_SUPABASE_URL
+        Value kutusu: https://abc.supabase.co
+
+YANLIŞ  Key: `NEXT_PUBLIC_SUPABASE_URL`
+        (baştaki/sondaki ters tırnak markdown'dan gelmiş)
+DOĞRU   Ters tırnakları silin.
+
+YANLIŞ  Key: NEXT_PUBLIC_SUPABASE_ANON_KE
+        (sondaki Y eksik - kesik kopyalanmış)
+DOĞRU   ...ANON_KEY  şeklinde bitmeli.
+
+YANLIŞ  Key: "NEXT_PUBLIC_SUPABASE_URL"
+        (çift tırnak geçersiz)
+
+YANLIŞ  Sonunda görünmez boşluk veya satır sonu
+DOĞRU   Yapıştırdıktan sonra End tuşuna basıp imlecin son harfin
+        hemen bitişiğinde durduğunu kontrol edin.
+
+
+KURAL: Key kutusunda sadece BÜYÜK HARF, RAKAM ve ALT TİRE (_) olabilir.
+       Boşluk, =, :, /, tırnak, nokta KABUL EDİLMEZ.
+       İlk karakter rakam olamaz.
+
+
+KAPSAM (Scopes) SORULURSA
+-------------------------
+"All scopes" veya en azından "Builds" + "Runtime" seçili olsun.
+Sadece "Functions" seçilirse build sırasında okunamaz.
+
+
+DEĞİŞKENLERİ EKLEDİKTEN SONRA
+-----------------------------
+Deploys -> Trigger deploy -> Clear cache and deploy site
+Yeniden deploy etmezseniz değişkenler devreye girmez.
