@@ -23,6 +23,7 @@ import PackagesTab from "./tabs/PackagesTab";
 import TherapistsTab from "./tabs/TherapistsTab";
 import OffersTab from "./tabs/OffersTab";
 import { Button } from "./ui";
+import StaffBar, { type StaffBarUser } from "@/components/auth/StaffBar";
 
 const TABS = [
   { key: "overview", label: "Genel Bakış", icon: Gauge },
@@ -37,7 +38,7 @@ const TABS = [
 type TabKey = (typeof TABS)[number]["key"];
 
 /** Owner admin panel: full control over content, staff, guests and bookings. */
-export default function AdminDashboard() {
+export default function AdminDashboard({ user }: { user?: StaffBarUser | null }) {
   const ops = useOperations();
   const [tab, setTab] = useState<TabKey>("overview");
 
@@ -56,17 +57,20 @@ export default function AdminDashboard() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                if (confirm("Demo verileri sıfırlansın mı?")) ops.resetDemoState();
-              }}
-              className="!px-4 !py-2 !text-xs"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Demo Sıfırla</span>
-            </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Resetting only makes sense against the local demo store. */}
+            {!ops.live && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  if (confirm("Demo verileri sıfırlansın mı?")) ops.resetDemoState();
+                }}
+                className="!px-4 !py-2 !text-xs"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Demo Sıfırla</span>
+              </Button>
+            )}
             <Link
               href="/reception"
               className="inline-flex items-center gap-2 rounded-full border border-white/12 px-4 py-2.5 text-xs font-semibold text-white/70 transition hover:border-crimson-500 hover:text-white"
@@ -74,6 +78,7 @@ export default function AdminDashboard() {
               <Store className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Resepsiyon</span>
             </Link>
+            <StaffBar user={user ?? null} />
           </div>
         </div>
 

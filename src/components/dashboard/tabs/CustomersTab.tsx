@@ -33,20 +33,24 @@ export default function CustomersTab() {
       );
   }, [ops.customers, ops.packageSummaries, ops.bookings, query]);
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) return;
-    ops.createCustomer({ full_name: name, phone, packageId: packageId || null });
-    setMessage(`${name} kaydedildi.`);
-    setName("");
-    setPhone("");
-    setPackageId("");
+    try {
+      await ops.createCustomer({ full_name: name, phone, packageId: packageId || null });
+      setMessage(`${name} kaydedildi.`);
+      setName("");
+      setPhone("");
+      setPackageId("");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Misafir kaydedilemedi.");
+    }
   };
 
-  const handleAssign = (e: React.FormEvent) => {
+  const handleAssign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!assignTo || !assignPkg) return;
-    const res = ops.assignPackage(assignTo, assignPkg);
+    const res = await ops.assignPackage(assignTo, assignPkg);
     setMessage(res.message_tr);
     setAssignPkg("");
   };

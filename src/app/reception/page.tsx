@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ReceptionDesk from "@/components/dashboard/ReceptionDesk";
+import { getStaffSession } from "@/lib/supabase/auth";
 
 export const metadata: Metadata = {
   title: "Resepsiyon",
@@ -7,6 +8,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function ReceptionPage() {
-  return <ReceptionDesk />;
+export const dynamic = "force-dynamic";
+
+export default async function ReceptionPage() {
+  const user = await getStaffSession();
+  return <ReceptionDesk user={user} />;
 }

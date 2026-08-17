@@ -4,7 +4,12 @@ import { ArrowRight, Phone } from "lucide-react";
 import PageHeader from "@/components/site/PageHeader";
 import ServiceCard from "@/components/site/ServiceCard";
 import Reveal from "@/components/ui/Reveal";
-import { BUSINESS, SERVICES } from "@/lib/demo-data";
+import { BUSINESS } from "@/lib/demo-data";
+import { getSiteContent } from "@/lib/site-content";
+
+// Prerendered and refreshed every 5 minutes, so admin edits reach the public
+// site without making every visit hit the database.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Hizmetler",
@@ -19,7 +24,9 @@ const RITUAL_STEPS = [
   { step: "04", title: "Dinlenme", text: "Seans sonrası dinlenme alanında bitki çayı ikramımızla tamamlanır." },
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const { services: SERVICES } = await getSiteContent();
+
   return (
     <>
       <PageHeader

@@ -21,6 +21,7 @@ import BookingRow, { NextUpBanner } from "./BookingRow";
 import CriticalPackages from "./CriticalPackages";
 import { EmptyState, Panel, StatCard } from "./ui";
 import { minutesUntil } from "@/lib/booking-rules";
+import StaffBar, { type StaffBarUser } from "@/components/auth/StaffBar";
 
 type Filter = "all" | "confirmed" | "cancelled";
 
@@ -31,8 +32,10 @@ type Filter = "all" | "confirmed" | "cancelled";
  * booking creation and the critical-package list on the right. Everything is
  * touch-sized and updates instantly as bookings change.
  */
-export default function ReceptionDesk() {
+export default function ReceptionDesk({ user }: { user?: StaffBarUser | null }) {
   const ops = useOperations();
+  // A receptionist has no business in the owner panel, so hide the shortcut.
+  const canSeeAdmin = !user || user.role === "admin";
   const [dayOffset, setDayOffset] = useState(0);
   const [filter, setFilter] = useState<Filter>("all");
   const [toast, setToast] = useState<{ text: string; ok: boolean } | null>(null);
@@ -77,8 +80,8 @@ export default function ReceptionDesk() {
     [ops.bookings, now],
   );
 
-  const handleCancel = (id: string) => {
-    const result = ops.cancelBooking(id);
+  const handleCancel = async (id: string) => {
+    const result = await ops.cancelBooking(id);
     setToast({ text: result.message_tr, ok: result.ok });
   };
 
@@ -118,7 +121,7 @@ export default function ReceptionDesk() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Day nav */}
             <div className="flex items-center gap-1 rounded-full border border-white/10 bg-ink-900/70 p-1">
               <button
@@ -146,13 +149,16 @@ export default function ReceptionDesk() {
               </button>
             </div>
 
-            <Link
-              href="/admin"
-              className="inline-flex items-center gap-2 rounded-full border border-white/12 px-4 py-2.5 text-xs font-semibold text-white/70 transition hover:border-crimson-500 hover:text-white"
-            >
-              <LayoutDashboard className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Yönetim</span>
-            </Link>
+            {canSeeAdmin && (
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-2 rounded-full border border-white/12 px-4 py-2.5 text-xs font-semibold text-white/70 transition hover:border-crimson-500 hover:text-white"
+              >
+                <LayoutDashboard className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Yönetim</span>
+              </Link>
+            )}
+            <StaffBar user={user ?? null} />
           </div>
         </div>
       </header>

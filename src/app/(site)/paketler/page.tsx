@@ -3,7 +3,12 @@ import { CheckCircle2, HelpCircle } from "lucide-react";
 import PageHeader from "@/components/site/PageHeader";
 import PackageCard from "@/components/site/PackageCard";
 import Reveal, { RevealItem } from "@/components/ui/Reveal";
-import { BUSINESS, PACKAGES } from "@/lib/demo-data";
+import { BUSINESS } from "@/lib/demo-data";
+import { getSiteContent } from "@/lib/site-content";
+
+// Prerendered and refreshed every 5 minutes, so admin edits reach the public
+// site without making every visit hit the database.
+export const revalidate = 300;
 import { CRITICAL_SESSION_THRESHOLD, FREE_CANCELLATION_MINUTES } from "@/lib/booking-rules";
 
 export const metadata: Metadata = {
@@ -35,7 +40,9 @@ const FAQ = [
   },
 ];
 
-export default function PackagesPage() {
+export default async function PackagesPage() {
+  const { packages: PACKAGES } = await getSiteContent();
+
   return (
     <>
       <PageHeader

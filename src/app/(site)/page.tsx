@@ -5,7 +5,12 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import Reveal, { RevealItem } from "@/components/ui/Reveal";
 import ServiceCard from "@/components/site/ServiceCard";
 import PackageCard from "@/components/site/PackageCard";
-import { BUSINESS, OFFERS, PACKAGES, SERVICES } from "@/lib/demo-data";
+import { BUSINESS } from "@/lib/demo-data";
+import { getSiteContent } from "@/lib/site-content";
+
+// Prerendered and refreshed every 5 minutes, so admin edits reach the public
+// site without making every visit hit the database.
+export const revalidate = 300;
 
 const VALUES = [
   {
@@ -45,7 +50,9 @@ const TESTIMONIALS = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { services: SERVICES, packages: PACKAGES, offers: OFFERS } = await getSiteContent();
+
   const featuredServices = SERVICES.filter((s) => s.is_featured).slice(0, 3);
   const highlightOffers = OFFERS.slice(0, 2);
 

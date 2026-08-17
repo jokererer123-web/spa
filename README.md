@@ -43,8 +43,9 @@ dashboards — is fully explorable out of the box.
 | `/firsatlar` | Current promotions |
 | `/paketler` | Membership packages + FAQ |
 | `/iletisim` | Contact details, map, request form |
-| `/admin` | Owner admin panel (7 tabs) |
-| `/reception`, `/desk` | Reception / tablet booking interface |
+| `/giris` | Staff login (Supabase Auth) |
+| `/admin` | Owner admin panel (7 tabs) — **admin role only** |
+| `/reception`, `/desk` | Reception / tablet booking interface — **staff only** |
 
 ---
 
@@ -76,7 +77,8 @@ npm run test:rules
 
 ## Supabase setup
 
-Optional — the app works without it.
+Optional — the app works without it, but bookings only persist in the browser
+until it is configured.
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Run the migration and seed:
@@ -87,6 +89,41 @@ Optional — the app works without it.
    Or paste [`supabase/migrations/20260817090000_init.sql`](supabase/migrations/20260817090000_init.sql)
    followed by [`supabase/seed.sql`](supabase/seed.sql) into the SQL editor.
 3. Copy `.env.example` to `.env.local` and fill in the two values.
+4. Create the two staff accounts — see below.
+
+### Staff accounts
+
+Authentication is enabled automatically as soon as the two environment
+variables are present. Without them the app stays in demo mode and the
+dashboards open without a password.
+
+1. **Authentication → Users → Add user** in the Supabase dashboard, twice.
+   Tick **Auto Confirm User** both times:
+   - `yonetici@reinaspa.com` — the owner
+   - `resepsiyon@reinaspa.com` — the front desk
+2. Run [`supabase/set-staff-roles.sql`](supabase/set-staff-roles.sql) in the
+   SQL editor to promote them to `admin` and `receptionist`.
+3. Sign in at `/giris`.
+
+| Role | Can open | Cannot |
+| --- | --- | --- |
+| `admin` | `/admin` and `/reception` | — |
+| `receptionist` | `/reception`, `/desk` | `/admin` (redirected back to the desk) |
+
+Any other signed-in user is rejected, so a customer account can never reach
+the dashboards. The gate lives in [`src/proxy.ts`](src/proxy.ts) and is
+enforced again by Row Level Security in the database.
+
+### Where the data comes from
+
+| Screen | Source with Supabase | Source without |
+| --- | --- | --- |
+| Public pages | live tables, prerendered and revalidated every 5 min | bundled demo content |
+| `/admin`, `/reception` | live tables + realtime subscription | in-browser demo store |
+
+Deduction and the 30-minute refund rule are enforced by SQL triggers, so a
+booking made from the tablet, the admin panel or the SQL editor behaves
+identically.
 
 The schema includes `profiles`, `customers`, `therapists`, `services`,
 `packages`, `customer_packages`, `bookings`, `offers` and `gallery_items`,

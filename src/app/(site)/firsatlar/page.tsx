@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { CalendarClock, Phone, Tag } from "lucide-react";
 import PageHeader from "@/components/site/PageHeader";
 import Reveal, { RevealItem } from "@/components/ui/Reveal";
-import { BUSINESS, OFFERS } from "@/lib/demo-data";
+import { BUSINESS } from "@/lib/demo-data";
+import { getSiteContent } from "@/lib/site-content";
+
+// Prerendered and refreshed every 5 minutes, so admin edits reach the public
+// site without making every visit hit the database.
+export const revalidate = 300;
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -11,7 +16,9 @@ export const metadata: Metadata = {
     "Reina Spa Ataşehir'in güncel kampanyaları, indirimleri ve özel teklifleri. Hafta içi indirimleri ve çiftlere özel fırsatlar.",
 };
 
-export default function OffersPage() {
+export default async function OffersPage() {
+  const { offers: OFFERS } = await getSiteContent();
+
   return (
     <>
       <PageHeader

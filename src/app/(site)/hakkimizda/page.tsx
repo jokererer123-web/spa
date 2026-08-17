@@ -4,7 +4,12 @@ import Link from "next/link";
 import { Award, HeartHandshake, Leaf, ShieldCheck, Sparkles } from "lucide-react";
 import PageHeader from "@/components/site/PageHeader";
 import Reveal, { RevealItem } from "@/components/ui/Reveal";
-import { BUSINESS, THERAPISTS } from "@/lib/demo-data";
+import { BUSINESS } from "@/lib/demo-data";
+import { getSiteContent } from "@/lib/site-content";
+
+// Prerendered and refreshed every 5 minutes, so admin edits reach the public
+// site without making every visit hit the database.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Hakkımızda",
@@ -35,7 +40,9 @@ const PRINCIPLES = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { therapists: THERAPISTS } = await getSiteContent();
+
   return (
     <>
       <PageHeader

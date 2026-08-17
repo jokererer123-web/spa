@@ -28,6 +28,7 @@ export default function BookingForm({ onDone }: BookingFormProps) {
   const [serviceId, setServiceId] = useState("");
   const [notes, setNotes] = useState("");
   const [usePackage, setUsePackage] = useState(true);
+  const [saving, setSaving] = useState(false);
   // Empty during prerender so the statically generated HTML matches the first
   // client render; defaults to the next half-hour slot once hydrated.
   const [whenOverride, setWhenOverride] = useState<string | null>(null);
@@ -55,45 +56,56 @@ export default function BookingForm({ onDone }: BookingFormProps) {
       } seans kaldı`
     : null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
 
     let id = customerId;
-    if (mode === "new") {
-      if (!newName.trim() || !newPhone.trim()) {
-        onDone?.("Lütfen misafir adı ve telefon bilgisini girin.", false);
+    setSaving(true);
+    try {
+      if (mode === "new") {
+        if (!newName.trim() || !newPhone.trim()) {
+          onDone?.("Lütfen misafir adı ve telefon bilgisini girin.", false);
+          return;
+        }
+        const created = await ops.createCustomer({
+          full_name: newName,
+          phone: newPhone,
+          packageId: newPackageId || null,
+        });
+        id = created.id;
+      }
+
+      if (!id) {
+        onDone?.("Lütfen bir misafir seçin.", false);
         return;
       }
-      const created = ops.createCustomer({
-        full_name: newName,
-        phone: newPhone,
-        packageId: newPackageId || null,
+
+      const result = await ops.createBooking({
+        customer_id: id,
+        therapist_id: therapistId || null,
+        service_id: serviceId || null,
+        scheduled_at: new Date(when).toISOString(),
+        notes: notes.trim() || null,
+        // A brand-new customer with a fresh package can still pay by package.
+        usePackage: mode === "new" ? Boolean(newPackageId) && usePackage : usePackage,
       });
-      id = created.id;
-    }
 
-    if (!id) {
-      onDone?.("Lütfen bir misafir seçin.", false);
-      return;
-    }
-
-    const result = ops.createBooking({
-      customer_id: id,
-      therapist_id: therapistId || null,
-      service_id: serviceId || null,
-      scheduled_at: new Date(when).toISOString(),
-      notes: notes.trim() || null,
-      // A brand-new customer with a fresh package can still pay by package.
-      usePackage: mode === "new" ? Boolean(newPackageId) && usePackage : usePackage,
-    });
-
-    onDone?.(result.message_tr, result.ok);
-    if (result.ok) {
-      setNotes("");
-      setNewName("");
-      setNewPhone("");
-      setNewPackageId("");
-      if (mode === "new") setMode("existing");
+      onDone?.(result.message_tr, result.ok);
+      if (result.ok) {
+        setNotes("");
+        setNewName("");
+        setNewPhone("");
+        setNewPackageId("");
+        if (mode === "new") setMode("existing");
+      }
+    } catch (err) {
+      onDone?.(
+        err instanceof Error ? err.message : "Randevu oluşturulamadı.",
+        false,
+      );
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -291,9 +303,9 @@ export default function BookingForm({ onDone }: BookingFormProps) {
         </p>
       )}
 
-      <Button type="submit" className="w-full py-3.5">
+      <Button type="submit" className="w-full py-3.5" disabled={saving}>
         {mode === "new" ? <UserPlus className="h-4 w-4" /> : <CalendarPlus className="h-4 w-4" />}
-        Randevuyu Oluştur
+        {saving ? "Kaydediliyor…" : "Randevuyu Oluştur"}
       </Button>
     </form>
   );
